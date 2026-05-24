@@ -7,6 +7,7 @@ import br.com.fiap.petcareai.dto.AtividadeIoTResponseDTO;
 import br.com.fiap.petcareai.exception.ResourceNotFoundException;
 import br.com.fiap.petcareai.repository.AtividadeIoTRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,11 +29,12 @@ public class AtividadeIoTService {
     }
 
     @Transactional(readOnly = true)
-    public AtividadeIoTResponseDTO buscarPorId(Long id) {
-        return AtividadeIoTResponseDTO.fromEntity(buscarEntidade(id));
+    public AtividadeIoTResponseDTO buscarPorId(Long petId, Long id) {
+        return AtividadeIoTResponseDTO.fromEntity(buscarEntidadeDoPet(petId, id));
     }
 
     @Transactional
+    @CacheEvict(value = "recomendacoes", key = "#petId")
     public AtividadeIoTResponseDTO registrar(Long petId, AtividadeIoTRequestDTO dto) {
         Pet pet = petService.buscarEntidade(petId);
 
@@ -52,8 +54,9 @@ public class AtividadeIoTService {
     }
 
     @Transactional
-    public void deletar(Long id) {
-        atividadeIoTRepository.delete(buscarEntidade(id));
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public void deletar(Long petId, Long id) {
+        atividadeIoTRepository.delete(buscarEntidadeDoPet(petId, id));
     }
 
     private String gerarAlerta(AtividadeIoTRequestDTO dto, String nomePet) {
@@ -86,5 +89,12 @@ public class AtividadeIoTService {
         return atividadeIoTRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Atividade IoT não encontrada com id: " + id));
     }
+
+    public AtividadeIoT buscarEntidadeDoPet(Long petId, Long id) {
+        return atividadeIoTRepository.findByIdAndPetId(id, petId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Atividade IoT não encontrada com id: " + id + " para o pet id: " + petId));
+    }
 }
+
 

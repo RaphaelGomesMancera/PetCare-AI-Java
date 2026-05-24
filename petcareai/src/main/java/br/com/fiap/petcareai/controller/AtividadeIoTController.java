@@ -36,7 +36,7 @@ public class AtividadeIoTController {
     @Operation(summary = "Buscar atividade por ID")
     public ResponseEntity<AtividadeIoTResponseDTO> buscarPorId(
             @PathVariable Long petId, @PathVariable Long id) {
-        return ResponseEntity.ok(atividadeIoTService.buscarPorId(id));
+        return ResponseEntity.ok(atividadeIoTService.buscarPorId(petId, id));
     }
 
     @PostMapping
@@ -53,8 +53,9 @@ public class AtividadeIoTController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover atividade IoT")
     public ResponseEntity<Void> deletar(@PathVariable Long petId, @PathVariable Long id) {
-        atividadeIoTService.deletar(id);
+        atividadeIoTService.deletar(petId, id);
         return ResponseEntity.noContent().build();
     }
 }
+
 

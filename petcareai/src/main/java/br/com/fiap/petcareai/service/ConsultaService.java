@@ -8,6 +8,7 @@ import br.com.fiap.petcareai.domain.enums.TipoConsulta;
 import br.com.fiap.petcareai.exception.ResourceNotFoundException;
 import br.com.fiap.petcareai.repository.ConsultaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,11 +31,12 @@ public class ConsultaService {
     }
 
     @Transactional(readOnly = true)
-    public ConsultaResponseDTO buscarPorId(Long id) {
-        return ConsultaResponseDTO.fromEntity(buscarEntidade(id));
+    public ConsultaResponseDTO buscarPorId(Long petId, Long id) {
+        return ConsultaResponseDTO.fromEntity(buscarEntidadeDoPet(petId, id));
     }
 
     @Transactional
+    @CacheEvict(value = "recomendacoes", key = "#petId")
     public ConsultaResponseDTO criar(Long petId, ConsultaRequestDTO dto) {
         Pet pet = petService.buscarEntidade(petId);
         Consulta consulta = Consulta.builder()
@@ -51,8 +53,9 @@ public class ConsultaService {
     }
 
     @Transactional
-    public ConsultaResponseDTO atualizar(Long id, ConsultaRequestDTO dto) {
-        Consulta consulta = buscarEntidade(id);
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public ConsultaResponseDTO atualizar(Long petId, Long id, ConsultaRequestDTO dto) {
+        Consulta consulta = buscarEntidadeDoPet(petId, id);
         consulta.setData(dto.data());
         consulta.setVeterinario(dto.veterinario());
         consulta.setTipo(dto.tipo());
@@ -64,13 +67,21 @@ public class ConsultaService {
     }
 
     @Transactional
-    public void deletar(Long id) {
-        consultaRepository.delete(buscarEntidade(id));
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public void deletar(Long petId, Long id) {
+        consultaRepository.delete(buscarEntidadeDoPet(petId, id));
     }
 
     public Consulta buscarEntidade(Long id) {
         return consultaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Consulta não encontrada com id: " + id));
     }
+
+    public Consulta buscarEntidadeDoPet(Long petId, Long id) {
+        return consultaRepository.findByIdAndPetId(id, petId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Consulta não encontrada com id: " + id + " para o pet id: " + petId));
+    }
 }
+
 

@@ -43,7 +43,7 @@ public class MedicamentoController {
     @Operation(summary = "Buscar medicamento por ID")
     public ResponseEntity<MedicamentoResponseDTO> buscarPorId(
             @PathVariable Long petId, @PathVariable Long id) {
-        return ResponseEntity.ok(medicamentoService.buscarPorId(id));
+        return ResponseEntity.ok(medicamentoService.buscarPorId(petId, id));
     }
 
     @PostMapping
@@ -61,14 +61,15 @@ public class MedicamentoController {
     public ResponseEntity<MedicamentoResponseDTO> atualizar(
             @PathVariable Long petId, @PathVariable Long id,
             @Valid @RequestBody MedicamentoRequestDTO dto) {
-        return ResponseEntity.ok(medicamentoService.atualizar(id, dto));
+        return ResponseEntity.ok(medicamentoService.atualizar(petId, id, dto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover medicamento")
     public ResponseEntity<Void> deletar(@PathVariable Long petId, @PathVariable Long id) {
-        medicamentoService.deletar(id);
+        medicamentoService.deletar(petId, id);
         return ResponseEntity.noContent().build();
     }
 }
+
 

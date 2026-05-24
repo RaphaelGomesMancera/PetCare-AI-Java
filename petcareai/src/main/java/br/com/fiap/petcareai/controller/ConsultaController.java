@@ -38,7 +38,7 @@ public class ConsultaController {
     @Operation(summary = "Buscar consulta por ID")
     public ResponseEntity<ConsultaResponseDTO> buscarPorId(
             @PathVariable Long petId, @PathVariable Long id) {
-        return ResponseEntity.ok(consultaService.buscarPorId(id));
+        return ResponseEntity.ok(consultaService.buscarPorId(petId, id));
     }
 
     @PostMapping
@@ -56,14 +56,15 @@ public class ConsultaController {
     public ResponseEntity<ConsultaResponseDTO> atualizar(
             @PathVariable Long petId, @PathVariable Long id,
             @Valid @RequestBody ConsultaRequestDTO dto) {
-        return ResponseEntity.ok(consultaService.atualizar(id, dto));
+        return ResponseEntity.ok(consultaService.atualizar(petId, id, dto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover consulta")
     public ResponseEntity<Void> deletar(@PathVariable Long petId, @PathVariable Long id) {
-        consultaService.deletar(id);
+        consultaService.deletar(petId, id);
         return ResponseEntity.noContent().build();
     }
 }
+
 

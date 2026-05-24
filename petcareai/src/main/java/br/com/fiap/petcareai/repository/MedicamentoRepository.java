@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> {
@@ -16,7 +17,10 @@ public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> 
 
     List<Medicamento> findByPetIdAndAtivoTrue(Long petId);
 
+    Optional<Medicamento> findByIdAndPetId(Long id, Long petId);
+
     // Medicamentos ativos que vencem nos próximos dias (usada pela IA)
     List<Medicamento> findByPetIdAndAtivoTrueAndDataFimBefore(Long petId, LocalDate data);
 }
+
 

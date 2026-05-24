@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface VacinaRepository extends JpaRepository<Vacina, Long> {
@@ -19,9 +20,12 @@ public interface VacinaRepository extends JpaRepository<Vacina, Long> {
     // Vacinas com próxima dose vencida ou chegando (usada pela IA)
     List<Vacina> findByPetIdAndProximaDoseBefore(Long petId, LocalDate data);
 
+    Optional<Vacina> findByIdAndPetId(Long id, Long petId);
+
     @Query("SELECT v FROM Vacina v WHERE v.pet.id = :petId AND v.proximaDose BETWEEN :hoje AND :limite")
     List<Vacina> findVacinasProximas(@Param("petId") Long petId,
                                      @Param("hoje") LocalDate hoje,
                                      @Param("limite") LocalDate limite);
 }
+
 

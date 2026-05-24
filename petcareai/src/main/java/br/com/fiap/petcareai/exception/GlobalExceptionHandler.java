@@ -1,6 +1,7 @@
 package br.com.fiap.petcareai.exception;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -52,6 +53,14 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
+    @ExceptionHandler({IllegalArgumentException.class, InvalidDataAccessApiUsageException.class})
+    public ResponseEntity<ErrorResponseDTO> handleBadRequest(
+            Exception ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST,
+                "Requisicao invalida: " + ex.getMessage(),
+                request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDTO> handleGeneric(
             Exception ex, HttpServletRequest request) {
@@ -66,3 +75,4 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 }
+

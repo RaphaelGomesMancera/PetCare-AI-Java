@@ -7,6 +7,7 @@ import br.com.fiap.petcareai.dto.MedicamentoResponseDTO;
 import br.com.fiap.petcareai.exception.ResourceNotFoundException;
 import br.com.fiap.petcareai.repository.MedicamentoRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,11 +34,12 @@ public class MedicamentoService {
     }
 
     @Transactional(readOnly = true)
-    public MedicamentoResponseDTO buscarPorId(Long id) {
-        return MedicamentoResponseDTO.fromEntity(buscarEntidade(id));
+    public MedicamentoResponseDTO buscarPorId(Long petId, Long id) {
+        return MedicamentoResponseDTO.fromEntity(buscarEntidadeDoPet(petId, id));
     }
 
     @Transactional
+    @CacheEvict(value = "recomendacoes", key = "#petId")
     public MedicamentoResponseDTO criar(Long petId, MedicamentoRequestDTO dto) {
         Pet pet = petService.buscarEntidade(petId);
         Medicamento m = Medicamento.builder()
@@ -54,8 +56,9 @@ public class MedicamentoService {
     }
 
     @Transactional
-    public MedicamentoResponseDTO atualizar(Long id, MedicamentoRequestDTO dto) {
-        Medicamento m = buscarEntidade(id);
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public MedicamentoResponseDTO atualizar(Long petId, Long id, MedicamentoRequestDTO dto) {
+        Medicamento m = buscarEntidadeDoPet(petId, id);
         m.setNome(dto.nome());
         m.setDosagem(dto.dosagem());
         m.setFrequencia(dto.frequencia());
@@ -67,13 +70,21 @@ public class MedicamentoService {
     }
 
     @Transactional
-    public void deletar(Long id) {
-        medicamentoRepository.delete(buscarEntidade(id));
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public void deletar(Long petId, Long id) {
+        medicamentoRepository.delete(buscarEntidadeDoPet(petId, id));
     }
 
     public Medicamento buscarEntidade(Long id) {
         return medicamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Medicamento não encontrado com id: " + id));
     }
+
+    public Medicamento buscarEntidadeDoPet(Long petId, Long id) {
+        return medicamentoRepository.findByIdAndPetId(id, petId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Medicamento não encontrado com id: " + id + " para o pet id: " + petId));
+    }
 }
+
 

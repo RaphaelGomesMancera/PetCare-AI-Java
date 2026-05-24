@@ -7,6 +7,7 @@ import br.com.fiap.petcareai.dto.VacinaResponseDTO;
 import br.com.fiap.petcareai.exception.ResourceNotFoundException;
 import br.com.fiap.petcareai.repository.VacinaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,8 +29,8 @@ public class VacinaService {
     }
 
     @Transactional(readOnly = true)
-    public VacinaResponseDTO buscarPorId(Long id) {
-        return VacinaResponseDTO.fromEntity(buscarEntidade(id));
+    public VacinaResponseDTO buscarPorId(Long petId, Long id) {
+        return VacinaResponseDTO.fromEntity(buscarEntidadeDoPet(petId, id));
     }
 
     @Transactional(readOnly = true)
@@ -41,6 +42,7 @@ public class VacinaService {
     }
 
     @Transactional
+    @CacheEvict(value = "recomendacoes", key = "#petId")
     public VacinaResponseDTO criar(Long petId, VacinaRequestDTO dto) {
         Pet pet = petService.buscarEntidade(petId);
         Vacina vacina = Vacina.builder()
@@ -56,8 +58,9 @@ public class VacinaService {
     }
 
     @Transactional
-    public VacinaResponseDTO atualizar(Long id, VacinaRequestDTO dto) {
-        Vacina vacina = buscarEntidade(id);
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public VacinaResponseDTO atualizar(Long petId, Long id, VacinaRequestDTO dto) {
+        Vacina vacina = buscarEntidadeDoPet(petId, id);
         vacina.setNome(dto.nome());
         vacina.setDataAplicacao(dto.dataAplicacao());
         vacina.setProximaDose(dto.proximaDose());
@@ -68,13 +71,21 @@ public class VacinaService {
     }
 
     @Transactional
-    public void deletar(Long id) {
-        vacinaRepository.delete(buscarEntidade(id));
+    @CacheEvict(value = "recomendacoes", key = "#petId")
+    public void deletar(Long petId, Long id) {
+        vacinaRepository.delete(buscarEntidadeDoPet(petId, id));
     }
 
     public Vacina buscarEntidade(Long id) {
         return vacinaRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Vacina não encontrada com id: " + id));
     }
+
+    public Vacina buscarEntidadeDoPet(Long petId, Long id) {
+        return vacinaRepository.findByIdAndPetId(id, petId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Vacina não encontrada com id: " + id + " para o pet id: " + petId));
+    }
 }
+
 

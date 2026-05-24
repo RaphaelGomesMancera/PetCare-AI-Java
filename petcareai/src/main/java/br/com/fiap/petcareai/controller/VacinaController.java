@@ -46,7 +46,7 @@ public class VacinaController {
     @Operation(summary = "Buscar vacina por ID")
     public ResponseEntity<VacinaResponseDTO> buscarPorId(
             @PathVariable Long petId, @PathVariable Long id) {
-        return ResponseEntity.ok(vacinaService.buscarPorId(id));
+        return ResponseEntity.ok(vacinaService.buscarPorId(petId, id));
     }
 
     @PostMapping
@@ -64,14 +64,15 @@ public class VacinaController {
     public ResponseEntity<VacinaResponseDTO> atualizar(
             @PathVariable Long petId, @PathVariable Long id,
             @Valid @RequestBody VacinaRequestDTO dto) {
-        return ResponseEntity.ok(vacinaService.atualizar(id, dto));
+        return ResponseEntity.ok(vacinaService.atualizar(petId, id, dto));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover vacina")
     public ResponseEntity<Void> deletar(@PathVariable Long petId, @PathVariable Long id) {
-        vacinaService.deletar(id);
+        vacinaService.deletar(petId, id);
         return ResponseEntity.noContent().build();
     }
 }
+
 
